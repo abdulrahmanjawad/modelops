@@ -1,0 +1,6 @@
+{
+	"hyperParameters": {
+		"SCORE_THRESHOLD": 0,
+		"SAMPLE_SIZE": 10000
+	}
+}
