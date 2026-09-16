@@ -1,6 +1,6 @@
 {
   "id": "a56f75a1-ce93-4c88-b981-7ca2e4ed9840",
-  "name": "TOS_Stay_Cascade_Model",
+  "name": "TOS Stay Cascade Model",
   "description": "Two-stage cascade model for TOS Stay predictions",
-  "language": "Python"
+  "language": "python"
 }
