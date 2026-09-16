@@ -2,21 +2,5 @@
   "id": "2112",
   "name": "TOS_Stay_Cascade_Model",
   "description": "Two-stage cascade model for TOS Stay predictions",
-  "language": "Python",
-  "scoring": {
-    "command": "python src/scoring.py"
-  },
-  "dataConfig": {
-    "primaryKey": "BILLING_ACCT_ID_NUM"
-  },
-  "outputs": [
-    {"name": "PREDICTION", "type": "float"},
-    {"name": "FLAGGED", "type": "integer"}
-  ],
-  "modelMonitoring": {
-    "driftMonitoringEnabled": false,
-    "useDefaultEvaluation": false,
-    "byomColumnExpression": "PREDICTION",
-    "modelType": "Classification"
-  }
+  "language": "Python"
 }
