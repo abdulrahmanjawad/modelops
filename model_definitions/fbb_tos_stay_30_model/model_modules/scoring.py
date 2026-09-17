@@ -19,13 +19,14 @@ except ImportError:
 
 
 def hash_bucket(val, n_buckets: int):
+    """Stateless MD5 hash bucketing for VAS_DESC."""
     return int(hashlib.md5(str(val).encode('utf-8')).hexdigest(), 16) % n_buckets
 
 
-def load_cascade(artifact_path: str):
-    stage1_model = joblib.load(f"{artifact_path}/stage1_model.joblib")
-    stage2_model = joblib.load(f"{artifact_path}/stage2_model.joblib")
-    with open(f"{artifact_path}/cascade_config.json", "r") as f:
+def load_cascade():
+    stage1_model = joblib.load(f"stage1_model.joblib")
+    stage2_model = joblib.load(f"stage2_model.joblib")
+    with open(f"cascade_config.json", "r") as f:
         cfg = json.load(f)
     return stage1_model, stage2_model, cfg
 
@@ -51,7 +52,7 @@ def score(context: ModelContext, **kwargs):
 
     tmo_create_context()
 
-    artifact_path   = context.artifact_input_path
+    # artifact_path   = context.artifact_input_path
     entity_key      = context.dataset_info.entity_key       # "BILLING_ACCT_ID_NUM"
     target_name     = context.dataset_info.target_names[0]  # "CHURN_PROB_30_DAY"
     score_threshold = float(context.hyperparameters.get("score_threshold", 0.648))
@@ -100,7 +101,7 @@ def score(context: ModelContext, **kwargs):
     # PHASE 3: FEATURE ENGINEERING (USING FROZEN ARTIFACTS)
     # ------------------------------------------------------------------
     print("Loading preprocessing pipeline artifacts...")
-    with open(f"{artifact_path}/tos_pipeline_artifacts.pkl", "rb") as f:
+    with open(f"tos_pipeline_artifacts.pkl", "rb") as f:
         tos_artifacts = pickle.load(f)
 
     constant_cols_dropped = tos_artifacts['constant_cols_dropped']
@@ -149,7 +150,7 @@ def score(context: ModelContext, **kwargs):
     # PHASE 4: CASCADE MODEL INFERENCE
     # ------------------------------------------------------------------
     print("Executing two-stage cascade inference...")
-    stage1_model, stage2_model, cfg = load_cascade(artifact_path)
+    stage1_model, stage2_model, cfg = load_cascade()
     combined_probs = cascade_predict(stage1_model, stage2_model, df_aug, cfg)
 
     # ------------------------------------------------------------------
