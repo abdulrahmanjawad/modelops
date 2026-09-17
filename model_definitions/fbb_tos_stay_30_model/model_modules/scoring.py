@@ -52,17 +52,16 @@ def score(context: ModelContext, **kwargs):
 
     tmo_create_context()
 
-    # artifact_path   = context.artifact_input_path
+    
     # entity_key      = context.dataset_info.entity_key       # "BILLING_ACCT_ID_NUM"
     # target_name     = context.dataset_info.target_names[0]  # "CHURN_PROB_30_DAY"
     # SCORE_THRESHOLD = float(context.hyperparams.get("score_threshold", 0.648))
     # STATE_DATE = context.hyperparams.get("state_date", "2026-08-30")
 
+    artifact_path   = context.artifact_input_path # artifact_path = "./model_modules"
     SCORE_THRESHOLD = 0.648
     STATE_DATE = "2026-08-30"
     OUTPUT_TABLE = f"{context.dataset_info.predictions_database}.{context.dataset_info.predictions_table}"
-
-    artifact_path = "./model_modules"
 
     # ------------------------------------------------------------------
     # PHASE 1: DATA LOADING
@@ -102,7 +101,7 @@ def score(context: ModelContext, **kwargs):
     ]
     for col in mixed_type_cols:
         if col in model_df.columns:
-            model_df[col] = model_df[col].astype(object)  # widen dtype first
+            model_df[col] = model_df[col].astype(object)  # widen dtype first - issue occured due to latest pandas version
             mask = model_df[col].notna()
             model_df.loc[mask, col] = model_df.loc[mask, col].astype(str)
 
@@ -188,5 +187,6 @@ def score(context: ModelContext, **kwargs):
         # index=False,
         if_exists="append",
     )
+    # use fastload() for large datasets
 
     print(f"SUCCESS: Pipeline successfully loaded into {OUTPUT_TABLE}.")
