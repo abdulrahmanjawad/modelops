@@ -97,6 +97,7 @@ def score(context: ModelContext, **kwargs):
     ]
     for col in mixed_type_cols:
         if col in model_df.columns:
+            model_df[col] = model_df[col].astype(object)  # widen dtype first
             mask = model_df[col].notna()
             model_df.loc[mask, col] = model_df.loc[mask, col].astype(str)
 
