@@ -63,6 +63,7 @@ def score(context: ModelContext, **kwargs):
     # FBB_FF_ADS, with ACCESS_TYPE derived via CASE WHEN.
     # ------------------------------------------------------------------
     print("Loading features via AOA dataset SQL (DSL LEFT JOIN FF)...")
+    print(f"Dataset SQL: {context.dataset_info.sql}")
     features_tdf = DataFrame.from_query(context.dataset_info.sql)
     features_pdf = features_tdf.to_pandas(all_rows=True)
 
