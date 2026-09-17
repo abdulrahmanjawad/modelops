@@ -55,8 +55,11 @@ def score(context: ModelContext, **kwargs):
     # artifact_path   = context.artifact_input_path
     # entity_key      = context.dataset_info.entity_key       # "BILLING_ACCT_ID_NUM"
     # target_name     = context.dataset_info.target_names[0]  # "CHURN_PROB_30_DAY"
-    SCORE_THRESHOLD = float(context.hyperparams.get("score_threshold", 0.648))
-    STATE_DATE = context.hyperparams.get("state_date", "2026-08-30")
+    # SCORE_THRESHOLD = float(context.hyperparams.get("score_threshold", 0.648))
+    # STATE_DATE = context.hyperparams.get("state_date", "2026-08-30")
+
+    SCORE_THRESHOLD = 0.648
+    STATE_DATE = "2026-08-30"
     OUTPUT_TABLE = f"{context.dataset_info.predictions_database}.{context.dataset_info.predictions_table}"
 
     artifact_path = "./model_modules"
