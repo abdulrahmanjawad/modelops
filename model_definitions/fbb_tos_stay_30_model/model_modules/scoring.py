@@ -55,7 +55,7 @@ def score(context: ModelContext, **kwargs):
     # artifact_path   = context.artifact_input_path
     entity_key      = context.dataset_info.entity_key       # "BILLING_ACCT_ID_NUM"
     target_name     = context.dataset_info.target_names[0]  # "CHURN_PROB_30_DAY"
-    score_threshold = float(context.hyperparameters.get("score_threshold", 0.648))
+    score_threshold = float(context.hyperparams.get("score_threshold", 0.648))
 
     # ------------------------------------------------------------------
     # PHASE 1: DATA LOADING
