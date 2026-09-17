@@ -58,7 +58,7 @@ def score(context: ModelContext, **kwargs):
     # SCORE_THRESHOLD = float(context.hyperparams.get("score_threshold", 0.648))
     # STATE_DATE = context.hyperparams.get("state_date", "2026-08-30")
 
-    artifact_path   = context.artifact_input_path # artifact_path = "./model_modules"
+    artifact_path   = context.artifact_input_path
     SCORE_THRESHOLD = 0.648
     STATE_DATE = "2026-08-30"
     OUTPUT_TABLE = f"{context.dataset_info.predictions_database}.{context.dataset_info.predictions_table}"
