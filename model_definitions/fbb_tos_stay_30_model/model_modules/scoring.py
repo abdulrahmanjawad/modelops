@@ -55,8 +55,9 @@ def score(context: ModelContext, **kwargs):
     # artifact_path   = context.artifact_input_path
     # entity_key      = context.dataset_info.entity_key       # "BILLING_ACCT_ID_NUM"
     # target_name     = context.dataset_info.target_names[0]  # "CHURN_PROB_30_DAY"
-    score_threshold = float(context.hyperparams.get("score_threshold", 0.648))
-    # score_threshold = float(kwargs.get("score_threshold", 0.5))
+    SCORE_THRESHOLD = float(context.hyperparams.get("score_threshold", 0.648))
+    STATE_DATE = context.hyperparams.get("state_date", "2026-08-30")
+    OUTPUT_TABLE = f"{context.dataset_info.predictions_database}.{context.dataset_info.predictions_table}"
 
     artifact_path = "./model_modules"
 
@@ -161,46 +162,28 @@ def score(context: ModelContext, **kwargs):
     # ------------------------------------------------------------------
     # PHASE 5: WRITE FLAGGED PREDICTIONS TO TERADATA VIA AOA
     # ------------------------------------------------------------------
-    flagged_mask = combined_probs >= score_threshold
-    n_flagged    = int(flagged_mask.sum())
-    print(f"Scoring complete. Flagged: {n_flagged:,} / {len(features_pdf):,} "
-          f"(threshold = {score_threshold})")
+    results = pd.DataFrame({
+        "BILLING_ACCT_ID_NUM": df_merged["BILLING_ACCT_ID_NUM"].values,
+        "STATE_DATE": STATE_DATE,
+        "PREDICTION": combined_probs,
+        "FLAGGED": (combined_probs >= SCORE_THRESHOLD).astype(int),
+        "SCORED_AT": pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+        # ,"JOB_ID": context.job_id 
+    })
 
-    if n_flagged == 0:
+    flagged_df = results[results["FLAGGED"] == 1].sort_values("PREDICTION", ascending=False)
+    print(f"Scoring complete. Total flagged accounts (>= {SCORE_THRESHOLD}): {len(flagged_df):,}")
+
+    if flagged_df.empty:
         print("No flagged accounts to persist.")
         return
 
-    scored_at = pd.Timestamp.now().isoformat()
-    predictions_pdf = pd.DataFrame({
-        "job_id":       context.job_id,
-        entity_key:     billing_ids[flagged_mask],
-        target_name:    combined_probs[flagged_mask].astype(float),
-        "json_report":  [
-            json.dumps({"flagged": 1, "scored_at": scored_at})
-            for _ in range(n_flagged)
-        ],
-    })
-
-    # Column order must match CREATE TABLE column order — teradataml v17
-    # copy_to_sql with if_exists="append" inserts by position, not by name.
-    predictions_pdf = predictions_pdf[["job_id", entity_key, target_name, "json_report"]]
-
-    print(f"Writing {n_flagged:,} predictions to Teradata...")
     copy_to_sql(
-        df=predictions_pdf,
+        df=flagged_df,
         schema_name=context.dataset_info.predictions_database,
         table_name=context.dataset_info.predictions_table,
-        index=False,
+        # index=False,
         if_exists="append",
     )
-    print("Predictions saved.")
 
-    # ------------------------------------------------------------------
-    # PHASE 6: SCORING STATS (DRIFT TRACKING)
-    # features_tdf = full scored population; predictions_df = this job's output
-    # ------------------------------------------------------------------
-    predictions_df = DataFrame.from_query(f"""
-        SELECT * FROM {context.dataset_info.get_predictions_metadata_fqtn()}
-        WHERE job_id = '{context.job_id}'
-    """)
-    record_scoring_stats(features_df=features_tdf, predicted_df=predictions_df, context=context)
+    print(f"SUCCESS: Pipeline successfully loaded into {OUTPUT_TABLE}.")
