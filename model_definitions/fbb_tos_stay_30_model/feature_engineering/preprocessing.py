@@ -38,8 +38,8 @@ def run_task(context: ModelContext, **kwargs):
     # PHASE 1: DATA EXTRACTION FROM TERADATA
     # ------------------------------------------------------------------
     sample_clause = f"SAMPLE {SAMPLE_SIZE}" if SAMPLE_SIZE else ""
-    dsl_sql = f"SELECT * FROM AD_VEW_SAS_ETL.BB_FBB_SEG_MODEL_ADS WHERE STATE_DATE = '{STATE_DATE}' {sample_clause}"
-    ff_sql = f"SELECT * FROM AD_VEW_SAS_ETL.FBB_FF_ADS WHERE STATE_DATE = '{STATE_DATE}' {sample_clause}"
+    dsl_sql = f"SELECT * FROM DEMO_USER.BB_FBB_SEG_MODEL_ADS WHERE STATE_DATE = '{STATE_DATE}' {sample_clause}"
+    ff_sql = f"SELECT * FROM DEMO_USER.FBB_FF_ADS WHERE STATE_DATE = '{STATE_DATE}' {sample_clause}"
 
     df_dsl = DataFrame.from_query(dsl_sql).to_pandas(all_rows=True)
     df_ff = DataFrame.from_query(ff_sql).to_pandas(all_rows=True)
