@@ -27,12 +27,14 @@ def run_task(context: ModelContext, **kwargs):
     # ------------------------------------------------------------------
     artifact_path   = context.artifact_input_path
 
-    OUTPUT_TABLE = os.environ.get("OUTPUT_TABLE", "DEMO_USER.TOS_ADS_INPUT_DATA")
+    # OUTPUT_TABLE = os.environ.get("OUTPUT_TABLE", "DEMO_USER.TOS_ADS_INPUT_DATA")
+    SCHEMA_NAME = "DEMO_USER"
+    OUTPUT_TABLE_NAME = "TOS_ADS_INPUT_DATA"
     SAMPLE_SIZE = os.environ.get("SAMPLE_SIZE", "")
     STATE_DATE = os.environ.get("STATE_DATE", "2026-08-30")
 
     print(f"--- Starting TOS Stay Feature Engineering ---")
-    print(f"STATE_DATE: {STATE_DATE} | OUTPUT: {OUTPUT_TABLE}")
+    print(f"STATE_DATE: {STATE_DATE}")
 
     # ------------------------------------------------------------------
     # PHASE 1: DATA EXTRACTION FROM TERADATA
@@ -148,11 +150,11 @@ def run_task(context: ModelContext, **kwargs):
     # ------------------------------------------------------------------
     # PHASE 4: WRITE FEATURE ENGINEERED DATA TO TERADATA VIA TMO
     # ------------------------------------------------------------------
-    print(f"Writing {len(df_aug)} records into {OUTPUT_TABLE}.")
+    print(f"Writing {len(df_aug)} records into {SCHEMA_NAME}.{OUTPUT_TABLE_NAME}.")
     copy_to_sql(
         df=df_aug,
-        schema_name=context.dataset_info.predictions_database,
-        table_name=context.dataset_info.predictions_table,
+        schema_name=SCHEMA_NAME,
+        table_name=OUTPUT_TABLE_NAME,
         if_exists="append", # "append" to existing table if it exists, "replace" to drop and recreate
         primary_index=["BILLING_ACCT_ID_NUM"]
     )
