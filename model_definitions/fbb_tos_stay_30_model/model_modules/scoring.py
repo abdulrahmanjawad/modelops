@@ -18,6 +18,12 @@ except ImportError:
     from aoa import aoa_create_context as tmo_create_context
 
 
+def load_scoring_config(artifact_path: str):
+    with open(f"{artifact_path}/scoring_config.json", "r") as f:
+        cfg = json.load(f)
+    return cfg
+
+
 def hash_bucket(val, n_buckets: int):
     """Stateless MD5 hash bucketing for VAS_DESC."""
     return int(hashlib.md5(str(val).encode('utf-8')).hexdigest(), 16) % n_buckets
@@ -59,9 +65,12 @@ def score(context: ModelContext, **kwargs):
     # STATE_DATE = context.hyperparams.get("state_date", "2026-08-30")
 
     artifact_path   = context.artifact_input_path
-    SCORE_THRESHOLD = 0.648
     STATE_DATE = "2026-08-30"
-    OUTPUT_TABLE = f"{context.dataset_info.predictions_database}.{context.dataset_info.predictions_table}"
+    OUTPUT_TABLE = f"{context.dataset_info.get_predictions_metadata_fqtn()}"
+
+    scoring_cfg = load_scoring_config(artifact_path)
+
+    SCORE_THRESHOLD = float(scoring_cfg.get("score_threshold", 0.648))
 
     # ------------------------------------------------------------------
     # PHASE 1: DATA LOADING

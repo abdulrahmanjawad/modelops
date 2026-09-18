@@ -17,7 +17,8 @@ def train(context: ModelContext, **kwargs):
     source_path = Path("./model_modules")
     destination_path = Path(context.artifact_output_path)
 
-    files = ['cascade_config.json', 'stage1_model.joblib', 'stage2_model.joblib', 'tos_baseline_model.joblib', 'tos_pipeline_artifacts.pkl']
+    files = ['cascade_config.json', 'stage1_model.joblib', 'stage2_model.joblib', 
+             'tos_baseline_model.joblib', 'tos_pipeline_artifacts.pkl', 'scoring_config.json']
 
     for name in files:
         src_path = source_path / name
