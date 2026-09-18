@@ -1,3 +1,4 @@
+import os
 import json
 import pickle
 import hashlib
@@ -7,21 +8,10 @@ import numpy as np
 import pandas as pd
 
 from teradataml import copy_to_sql, DataFrame
-try:
-    from tmo import (
-        tmo_create_context,
-        record_scoring_stats,
-        ModelContext,
-    )
-except ImportError:
-    from aoa import record_scoring_stats, ModelContext
-    from aoa import aoa_create_context as tmo_create_context
-
-
-def load_scoring_config(artifact_path: str):
-    with open(f"{artifact_path}/scoring_config.json", "r") as f:
-        cfg = json.load(f)
-    return cfg
+from tmo import (
+    tmo_create_context,
+    ModelContext,
+)
 
 
 def hash_bucket(val, n_buckets: int):
@@ -68,9 +58,7 @@ def score(context: ModelContext, **kwargs):
     STATE_DATE = "2026-08-30"
     OUTPUT_TABLE = f"{context.dataset_info.get_predictions_metadata_fqtn()}"
 
-    scoring_cfg = load_scoring_config(artifact_path)
-
-    SCORE_THRESHOLD = float(scoring_cfg.get("score_threshold", 0.648))
+    SCORE_THRESHOLD = float(os.environ.get("SCORE_THRESHOLD", 0.648))
 
     # ------------------------------------------------------------------
     # PHASE 1: DATA LOADING
@@ -174,12 +162,12 @@ def score(context: ModelContext, **kwargs):
     # PHASE 5: WRITE FLAGGED PREDICTIONS TO TERADATA VIA AOA
     # ------------------------------------------------------------------
     results = pd.DataFrame({
+        "JOB_ID": context.job_id,
         "BILLING_ACCT_ID_NUM": df_merged["BILLING_ACCT_ID_NUM"].values,
         "STATE_DATE": STATE_DATE,
         "PREDICTION": combined_probs,
         "FLAGGED": (combined_probs >= SCORE_THRESHOLD).astype(int),
         "SCORED_AT": pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
-        # ,"JOB_ID": context.job_id 
     })
 
     flagged_df = results[results["FLAGGED"] == 1].sort_values("PREDICTION", ascending=False)
